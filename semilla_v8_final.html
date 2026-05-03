@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f1;--sf:#fff;--sf2:#f0efe9;--sf3:#e8e6df;
+  --tx:#1a1916;--tx2:#6b6960;--tx3:#9e9c94;
+  --blue:#2563eb;--blue-l:#eff6ff;--green:#16a34a;--green-l:#f0fdf4;
+  --amber:#d97706;--amber-l:#fffbeb;--purple:#7c3aed;--purple-l:#f5f3ff;
+  --coral:#ea580c;--coral-l:#fff7ed;
+  --bd:rgba(26,25,22,0.1);--bd2:rgba(26,25,22,0.18);
+  --r:12px;--r2:8px;--fn:'DM Sans',sans-serif;--fns:'DM Serif Display',serif;
+  --sh:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04);
+  --shm:0 4px 16px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);
+}
+[data-theme="dark"]{
+  --bg:#0f0f0e;--sf:#1c1b19;--sf2:#242320;--sf3:#2e2c28;
+  --tx:#f0eeea;--tx2:#9e9c94;--tx3:#6b6960;
+  --blue:#60a5fa;--blue-l:#1e3a5f;--green:#4ade80;--green-l:#14532d;
+  --amber:#fbbf24;--amber-l:#451a03;--purple:#a78bfa;--purple-l:#2e1065;
+  --coral:#fb923c;--coral-l:#431407;
+  --bd:rgba(240,238,234,0.08);--bd2:rgba(240,238,234,0.15);
+  --sh:0 1px 3px rgba(0,0,0,0.3),0 4px 12px rgba(0,0,0,0.2);
+  --shm:0 4px 16px rgba(0,0,0,0.35),0 1px 4px rgba(0,0,0,0.2);
+}
+html{font-family:var(--fn);background:var(--bg);color:var(--tx);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+body{min-height:100vh;overflow-x:hidden}
+#bgC{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.5}
+[data-theme="dark"] #bgC{opacity:.25}
+.app{max-width:700px;margin:0 auto;padding:2rem 1.25rem 5rem;position:relative;z-index:1}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:11px}
+.bulb{width:34px;height:34px;flex-shrink:0}
+.bulb svg{width:34px;height:34px;overflow:visible}
+.bg2{animation:bp 3s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:.6}50%{opacity:1}}
+.bf2{animation:bff 2.5s ease-in-out infinite}
+@keyframes bff{0%,100%{opacity:.7}40%{opacity:1}70%{opacity:.85}}
+.lt{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.ls{font-size:11px;color:var(--tx3);margin-top:1px}
+.tbtn{width:34px;height:34px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:all .2s;font-size:14px}
+.tbtn:hover{background:var(--sf3)}
+.asep{height:2px;margin:1.75rem 0;position:relative;overflow:hidden;background:var(--sf3);border-radius:1px}
+.asep::after{content:'';position:absolute;top:0;left:-60%;width:60%;height:100%;background:linear-gradient(90deg,transparent,var(--amber),transparent);animation:sw 3s ease-in-out infinite}
+@keyframes sw{0%{left:-60%}100%{left:160%}}
+.ptrack{height:3px;background:var(--sf3);border-radius:2px;overflow:hidden;margin-bottom:1.75rem}
+.pfill{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#1a1916,#d97706,#1a1916);background-size:200% 100%;animation:ps 2s linear infinite}
+[data-theme="dark"] .pfill{background:linear-gradient(90deg,#f0eeea,#fbbf24,#f0eeea);background-size:200% 100%}
+@keyframes ps{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.scr{display:none;animation:fi .35s ease}
+.scr.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.ndots{display:flex;gap:6px;margin-bottom:1.75rem;flex-wrap:wrap}
+.nd{width:22px;height:4px;border-radius:2px;background:var(--sf3);transition:all .3s}
+.nd.done{background:var(--tx3)}.nd.active{background:var(--amber);width:30px}
+.ey{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:500;margin-bottom:.4rem}
+.qt{font-size:20px;font-weight:600;color:var(--tx);line-height:1.3;letter-spacing:-.02em;margin-bottom:.35rem}
+.qh{font-size:13px;color:var(--tx3);margin-bottom:1.2rem;line-height:1.5;font-style:italic}
+.qex{background:var(--blue-l);border-left:3px solid var(--blue);border-radius:0 var(--r2) var(--r2) 0;padding:9px 13px;font-size:13px;color:var(--tx2);margin-bottom:1.2rem;line-height:1.5}
+.qex strong{color:var(--tx);font-weight:500}
+.qs{font-size:13px;font-weight:600;color:var(--tx);margin:1.1rem 0 .5rem}
+.wtit{font-family:var(--fns);font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.15;letter-spacing:-.02em;margin-bottom:.9rem}
+.wtit em{font-style:italic;color:var(--tx2)}
+.wdesc{font-size:15px;color:var(--tx2);line-height:1.7;max-width:520px;margin-bottom:2.2rem}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:2.2rem}
+.pill{background:var(--sf2);border:1px solid var(--bd);border-radius:100px;padding:4px 11px;font-size:11px;font-weight:500;color:var(--tx3);transition:all .2s}
+.pill:hover{border-color:var(--amber);color:var(--amber)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:100px;font-family:var(--fn);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .2s;text-decoration:none;position:relative;overflow:hidden}
+.btnp{background:var(--tx);color:var(--bg)}
+.btnp::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(217,119,6,.18) 60%,transparent 80%);background-size:200% 100%;animation:bs 3s ease-in-out infinite}
+@keyframes bs{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.btnp:hover{opacity:.85;transform:translateY(-1px)}
+.btng{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)}
+.btng:hover{background:var(--sf3);color:var(--tx)}
+.bgrp{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.5rem}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:1.1rem}
+.tc{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);padding:1.2rem;cursor:pointer;transition:all .2s;text-align:left;position:relative;overflow:hidden}
+.tc::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,var(--amber-l),transparent 70%);opacity:0;transition:opacity .3s}
+.tc:hover{border-color:var(--bd2);transform:translateY(-2px);box-shadow:var(--shm)}
+.tc:hover::before,.tc.sel::before{opacity:1}
+.tc.sel{border-color:var(--amber)}
+.tci{font-size:21px;margin-bottom:9px;display:block;position:relative;z-index:1}
+.tcn{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:3px;position:relative;z-index:1}
+.tcd{font-size:12px;color:var(--tx3);line-height:1.4;position:relative;z-index:1}
+textarea{width:100%;background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r2);padding:13px;font-family:var(--fn);font-size:14px;color:var(--tx);line-height:1.6;resize:vertical;min-height:100px;transition:border-color .2s,box-shadow .2s;outline:none}
+textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-l)}
+textarea::placeholder{color:var(--tx3)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:.75rem}
+.chip{background:var(--sf);border:1.5px solid var(--bd);border-radius:100px;padding:7px 14px;font-size:13px;color:var(--tx2);cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none}
+.chip:hover{border-color:var(--bd2);color:var(--tx)}
+.chip.sel{border-color:var(--amber);background:var(--amber-l);color:var(--tx);font-weight:500}
+.ropts{display:flex;flex-direction:column;gap:6px;margin-bottom:.75rem}
+.ropt{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r2);padding:10px 13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:9px;font-size:14px;color:var(--tx2);user-select:none}
+.ropt:hover{border-color:var(--bd2);color:var(--tx)}
+.ropt.sel{border-color:var(--amber);background:var(--amber-l);color:var(--tx);font-weight:500}
+.rb{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--bd2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ropt.sel .rb{border-color:var(--amber);background:var(--amber)}
+.rbdot{width:7px;height:7px;border-radius:50%;background:#fff;display:none}
+.ropt.sel .rbdot{display:block}
+.cb{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--bd2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:0}
+.ropt.sel .cb{background:var(--amber);border-color:var(--amber);font-size:10px;color:#fff;font-weight:700}
+.sscale{margin-bottom:.75rem}
+.slabs{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px}
+.sbtns{display:flex;gap:5px}
+.sbtn{flex:1;padding:11px 4px;background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r2);text-align:center;cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;color:var(--tx2);user-select:none}
+.sbtn:hover{border-color:var(--bd2)}
+.sbtn.sel{border-color:var(--amber);background:var(--amber-l);color:var(--tx)}
+.sbtn small{display:block;font-size:10px;color:var(--tx3);font-weight:400;margin-top:2px}
+.sldwrap{margin-bottom:.75rem}
+.sldlabs{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px}
+input[type=range]{width:100%;accent-color:var(--amber);cursor:pointer}
+.sldval{font-size:19px;font-weight:600;color:var(--tx);margin-top:6px;text-align:center}
+.rtag{display:inline-block;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.9rem}
+.rtitle{font-family:var(--fns);font-size:clamp(1.5rem,4vw,2.3rem);line-height:1.2;margin-bottom:.7rem}
+.rsumm{font-size:15px;color:var(--tx2);line-height:1.7;max-width:490px;margin:0 auto}
+.rh{text-align:center;padding:2.2rem 0 1.4rem;border-bottom:1px solid var(--bd);margin-bottom:1.75rem}
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:9px;margin:1.25rem 0}
+.pil{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:.9rem;text-align:center;transition:transform .2s,box-shadow .2s}
+.pil:hover{transform:translateY(-2px);box-shadow:var(--shm)}
+.pilsc{font-size:25px;font-weight:600;line-height:1;margin-bottom:3px}
+.pilbar{height:3px;background:var(--sf3);border-radius:2px;margin:7px 0;overflow:hidden}
+.pilfill{height:100%;border-radius:2px;transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+.pill2{font-size:10px;font-weight:500;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase}
+.ds{margin-bottom:1.75rem}
+.dtit{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.9rem}
+.dbl{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);padding:.9rem 1.2rem;margin-bottom:7px;transition:border-color .2s}
+.dbl:hover{border-color:var(--bd2)}
+.dblt{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:3px}
+.dblb{font-size:13px;color:var(--tx2);line-height:1.55}
+.cl{list-style:none}
+.cli{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd);font-size:14px;color:var(--tx);line-height:1.5}
+.cli:last-child{border-bottom:none}
+.cbox{width:19px;height:19px;border-radius:5px;border:1.5px solid var(--bd2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s;background:var(--sf)}
+.cbox.done{background:var(--green);border-color:var(--green)}
+.cbox.done::after{content:"✓";color:white;font-size:11px;font-weight:700}
+.alt{border-radius:var(--r2);padding:11px 13px;font-size:13px;line-height:1.5;margin-bottom:7px;display:flex;gap:8px;align-items:flex-start}
+.alti{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;margin-top:1px}
+.aw{background:var(--amber-l);color:var(--amber)}.aw .alti{background:var(--amber);color:#fff}
+.ai{background:var(--blue-l);color:var(--blue)}.ai .alti{background:var(--blue);color:#fff}
+.as2{background:var(--green-l);color:var(--green)}.as2 .alti{background:var(--green);color:#fff}
+.cwrap{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:.4rem 1rem;box-shadow:var(--sh)}
+.chartwrap{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.4rem;margin:1.4rem 0}
+.jn{margin-top:2.25rem;padding-top:1.75rem;border-top:1px solid var(--bd)}
+.jney{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);font-weight:500;margin-bottom:1rem}
+.jnb{font-size:15px;color:var(--tx2);line-height:1.8;font-style:italic;margin-bottom:.5rem;max-width:510px}
+.jnb em{color:var(--tx);font-style:normal;font-weight:500}
+.jnsig{font-size:13px;font-weight:600;color:var(--tx3);margin-bottom:1.2rem}
+.sbtns2{display:flex;gap:7px;flex-wrap:wrap}
+.sb2{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--bd);background:var(--sf2);color:var(--tx2);text-decoration:none;transition:all .2s}
+.sb2:hover{border-color:var(--bd2);color:var(--tx);transform:translateY(-1px)}
+.sb2 svg{width:13px;height:13px;flex-shrink:0}
+.foot{margin-top:2.5rem;padding-top:1.4rem;border-top:1px solid var(--bd);text-align:center;font-size:12px;color:var(--tx3)}
+.foot span{color:var(--amber);font-weight:500}
+@media(max-width:500px){.app{padding:1.1rem 1rem 4.5rem}.tgrid{grid-template-columns:repeat(2,1fr)}.pillars{grid-template-columns:repeat(3,1fr)}.wtit{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<canvas id="bgC"></canvas>
+<div class="app">
+<header class="hdr">
+  <div class="logo">
+    <div class="bulb">
+      <svg viewBox="0 0 36 36" fill="none">
+        <defs>
+          <radialGradient id="gG" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".9"/><stop offset="100%" stop-color="#92400e" stop-opacity="0"/></radialGradient>
+          <linearGradient id="bG" x1="10" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fde68a"/><stop offset="40%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#1a1916"/></linearGradient>
+        </defs>
+        <circle class="bg2" cx="18" cy="14" r="14" fill="url(#gG)"/>
+        <path d="M14 23.5c0-2.5-2.5-4.5-3.5-7.5C9.5 12 12 7 18 7s8.5 5 7.5 9c-1 3-3.5 5-3.5 7.5" stroke="url(#bG)" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M13 23.5h10M13.5 26h9" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M14.5 28.5c0 1.5 1.5 2.5 3.5 2.5s3.5-1 3.5-2.5" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path class="bf2" d="M18 10v3M15.5 12.5L18 14.5M20.5 12.5L18 14.5" stroke="#fde68a" stroke-width="1.2" stroke-linecap="round"/>
+        <circle class="bf2" cx="18" cy="14" r="3" fill="#fbbf24" opacity=".4"/>
+      </svg>
+    </div>
+    <div><div class="lt">Semilla</div><div class="ls">Sistema de aterrizaje de ideas</div></div>
+  </div>
+  <button class="tbtn" id="themeBtn" onclick="toggleTheme()">☽</button>
+</header>
+
+<div class="scr on" id="s0">
+  <div class="ey">Bienvenido</div>
+  <h1 class="wtit">Tienes una idea.<br><em>Vamos a darle forma.</em></h1>
+  <p class="wdesc">En 5–10 minutos pasarás de una chispa vaga a un diagnóstico claro — con dirección, métricas y pasos concretos para actuar.</p>
+  <div class="pills"><span class="pill">Lean Startup</span><span class="pill">Design Thinking</span><span class="pill">Jobs To Be Done</span><span class="pill">SMART Goals</span><span class="pill">Business Model Canvas</span><span class="pill">Ikigai</span></div>
+  <div class="bgrp"><button class="btn btnp" onclick="goTo('s1')">Comenzar <span style="font-size:17px;line-height:1">→</span></button></div>
+  <div class="asep" style="margin-top:2.5rem"></div>
+  <p style="font-size:12px;color:var(--tx3);text-align:center">Metodologías probadas · Diagnóstico visual · Pasos concretos</p>
+</div>
+
+<div class="scr" id="s1"><div class="ndots" id="nd1"></div><div class="ey">Paso 1 de 7</div><h2 class="qt">Cuéntame tu idea, como te salga</h2><p class="qh">Sin estructura, sin filtro. Escribe exactamente lo que tienes en la cabeza ahora mismo.</p><div class="qex"><strong>Ejemplo:</strong> "Quiero crear una plataforma donde las personas intercambien habilidades sin dinero — yo te enseño inglés, tú me enseñas a cocinar."</div><textarea id="rawIdea" placeholder="Tu idea aquí..." rows="5"></textarea><div class="bgrp"><button class="btn btnp" onclick="s1next()">Continuar →</button></div></div>
+
+<div class="scr" id="s2"><div class="ndots" id="nd2"></div><div class="ey">Paso 2 de 7</div><h2 class="qt">¿Qué tipo de idea es esta?</h2><p class="qh">Elige la que más resuena. Esto cambia completamente las preguntas que vendrán.</p><div class="tgrid"><div class="tc" data-t="biz" onclick="selType(this)"><span class="tci">◈</span><div class="tcn">Emprendimiento<br>o negocio</div><div class="tcd">Quiero que genere ingresos o que escale</div></div><div class="tc" data-t="personal" onclick="selType(this)"><span class="tci">◎</span><div class="tcn">Proyecto<br>personal</div><div class="tcd">Una meta que quiero lograr para mí</div></div><div class="tc" data-t="creative" onclick="selType(this)"><span class="tci">◇</span><div class="tcn">Idea<br>creativa</div><div class="tcd">Arte, contenido, marca, diseño</div></div><div class="tc" data-t="life" onclick="selType(this)"><span class="tci">○</span><div class="tcn">Transformación<br>de vida</div><div class="tcd">Quiero cambiar algo fundamental en mi vida o carrera</div></div></div><div class="bgrp"><button class="btn btnp" onclick="s2next()">Continuar →</button><button class="btn btng" onclick="goTo('s1')">← Atrás</button></div></div>
+
+<div class="scr" id="s3"><div class="ndots" id="nd3"></div><div class="ey">Paso 3 de 7</div><h2 class="qt" id="s3q"></h2><p class="qh" id="s3h"></p><div class="qex" id="s3ex"></div><textarea id="s3t" rows="4" placeholder=""></textarea><div id="s3extra"></div><div class="bgrp"><button class="btn btnp" onclick="s3next()">Continuar →</button><button class="btn btng" onclick="goTo('s2')">← Atrás</button></div></div>
+<div class="scr" id="s4"><div class="ndots" id="nd4"></div><div class="ey">Paso 4 de 7</div><h2 class="qt" id="s4q"></h2><p class="qh" id="s4h"></p><div id="s4c"></div><div class="bgrp"><button class="btn btnp" onclick="s4next()">Continuar →</button><button class="btn btng" onclick="goTo('s3')">← Atrás</button></div></div>
+<div class="scr" id="s5"><div class="ndots" id="nd5"></div><div class="ey">Paso 5 de 7</div><h2 class="qt" id="s5q"></h2><p class="qh" id="s5h"></p><div id="s5c"></div><div class="bgrp"><button class="btn btnp" onclick="s5next()">Continuar →</button><button class="btn btng" onclick="goTo('s4')">← Atrás</button></div></div>
+<div class="scr" id="s6"><div class="ndots" id="nd6"></div><div class="ey">Paso 6 de 7</div><h2 class="qt" id="s6q"></h2><p class="qh" id="s6h"></p><div id="s6c"></div><div class="bgrp"><button class="btn btnp" onclick="s6next()">Continuar →</button><button class="btn btng" onclick="goTo('s5')">← Atrás</button></div></div>
+<div class="scr" id="s7"><div class="ndots" id="nd7"></div><div class="ey">Paso 7 de 7</div><h2 class="qt" id="s7q"></h2><p class="qh" id="s7h"></p><div id="s7c"></div><div class="bgrp"><button class="btn btnp" onclick="showResult()">Ver mi diagnóstico →</button><button class="btn btng" onclick="goTo('s6')">← Atrás</button></div></div>
+
+<div class="scr" id="sR">
+  <div class="rh"><div class="rtag" id="rTag"></div><h1 class="rtitle" id="rTitle"></h1><p class="rsumm" id="rSumm"></p></div>
+  <div class="dtit">Diagnóstico por pilares</div>
+  <div class="pillars" id="pillars"></div>
+  <div class="chartwrap"><div class="dtit">Mapa de potencial</div><div style="position:relative;width:100%;max-width:290px;margin:0 auto;height:250px"><canvas id="radar"></canvas></div></div>
+  <div class="ds" id="diagBlocks"></div>
+  <div class="ds"><div class="dtit">Señales a tener en cuenta</div><div id="alerts"></div></div>
+  <div class="ds"><div class="dtit">Tus próximos pasos</div><div class="cwrap"><ul class="cl" id="checklist"></ul></div></div>
+  <div class="ds"><div class="dtit">Marcos recomendados</div><div id="resources"></div></div>
+  <div class="jn">
+    <div class="jney">Una nota de quien hizo esto</div>
+    <p class="jnb">Este diagnóstico lo construí porque creo que las buenas ideas merecen aterrizarse bien, no quedarse dando vueltas. Si en algún momento tu idea necesita cara — un logo, una identidad, algo que la haga tangible y reconocible — ese es el trabajo que hago. <em>Sin fórmulas. Con intención.</em></p>
+    <div class="jnsig">— @jotady</div>
+    <div class="sbtns2">
+      <a class="sb2" href="https://www.linkedin.com/in/jotady" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>@jotady</a>
+      <a class="sb2" href="https://www.instagram.com/jotady" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>@jotady</a>
+      <a class="sb2" href="https://wa.me/56934881823" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp</a>
+    </div>
+  </div>
+  <div class="bgrp" style="justify-content:center;margin-top:2rem">
+    <button class="btn btnp" onclick="exportPDF()">Exportar PDF</button>
+    <button class="btn btng" onclick="restart()">Evaluar otra idea</button>
+  </div>
+</div>
+
+<footer class="foot">Hecho con <span>♥</span> por <span>@jotady</span></footer>
+</div>
+
+<script>
+const S={theme:'light',type:'',raw:'',s3t:'',s3urg:0,s3tone:'',s3yrs:1,s4t:'',s4market:'',s4audience:'',s4known:'',s4channel:'',s4area:'',s5t:'',s5model:'',s5comp:'',s5attempts:'',s5body:'',s5monetize:'',s5willingness:0,s5referents:'',s6stage:'',s6resources:[],s6time:10,s6clarity:0,s6blocker:'',s6rhythm:'',s6duration:'',s6actions:'',s6support:0,s6t:'',s7t:'',s7validation:'',s7horizon:'',s7fearScore:0,s7readiness:0,s7fear:'',s7judgment:0,s7urgency2:''};
+
+(function(){
+  const cv=document.getElementById('bgC'),ctx=cv.getContext('2d');
+  let W,H,mx=.5,my=.5,tx=.5,ty=.5;
+  const orbs=[{x:.2,y:.3,r:.28,sp:.0003,ph:0,c:'a'},{x:.8,y:.7,r:.22,sp:.0004,ph:1.5,c:'b'},{x:.5,y:.1,r:.18,sp:.0005,ph:3,c:'c'},{x:.1,y:.8,r:.2,sp:.0002,ph:.8,c:'d'},{x:.9,y:.2,r:.16,sp:.0006,ph:2.2,c:'e'}];
+  function rsz(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+  addEventListener('resize',rsz);rsz();
+  addEventListener('mousemove',e=>{tx=e.clientX/W;ty=e.clientY/H});
+  addEventListener('touchmove',e=>{if(e.touches[0]){tx=e.touches[0].clientX/W;ty=e.touches[0].clientY/H}},{passive:true});
+  function dk(){return document.documentElement.getAttribute('data-theme')==='dark'}
+  function gc(c,a){const d=dk();const m={a:d?`rgba(251,191,36,${a*.6})`:`rgba(251,191,36,${a*.4})`,b:d?`rgba(245,158,11,${a*.5})`:`rgba(253,230,138,${a*.55})`,c:d?`rgba(217,119,6,${a*.45})`:`rgba(252,211,77,${a*.45})`,d:d?`rgba(180,83,9,${a*.4})`:`rgba(254,243,199,${a*.7})`,e:d?`rgba(120,53,15,${a*.35})`:`rgba(255,251,235,${a*.8})`};return m[c]}
+  let t=0;
+  function draw(){t++;mx+=(tx-mx)*.04;my+=(ty-my)*.04;ctx.clearRect(0,0,W,H);orbs.forEach(o=>{const ox=(o.x+Math.sin(t*o.sp+o.ph)*.12+mx*.05)*W,oy=(o.y+Math.cos(t*o.sp*1.3+o.ph)*.1+my*.04)*H,r=o.r*Math.min(W,H)*(.9+Math.sin(t*o.sp*2+o.ph)*.1),g=ctx.createRadialGradient(ox,oy,0,ox,oy,r);g.addColorStop(0,gc(o.c,.5));g.addColorStop(.5,gc(o.c,.15));g.addColorStop(1,gc(o.c,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(ox,oy,r,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
+  draw();
+})();
+
+function toggleTheme(){S.theme=S.theme==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',S.theme);document.getElementById('themeBtn').textContent=S.theme==='dark'?'☀':'☽';}
+function goTo(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo({top:0,behavior:'smooth'});updateDots();}
+function updateDots(){for(let i=1;i<=7;i++){const w=document.getElementById('nd'+i);if(!w)continue;w.innerHTML='';for(let d=1;d<=7;d++){const dot=document.createElement('div');dot.className='nd'+(d<i?' done':'')+(d===i?' active':'');w.appendChild(dot);}}}
+function selType(el){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');S.type=el.dataset.t;}
+function mkChips(id,vals,key,multi){return`<div class="chips" id="${id}">`+vals.map(v=>`<div class="chip" onclick="togChip(this,'${key}',${multi})">${v.l}</div>`).join('')+'</div>';}
+function mkRadio(id,vals,key){return`<div class="ropts" id="${id}">`+vals.map(v=>`<div class="ropt" onclick="togRadio(this,'${key}')"><span class="rb"><span class="rbdot"></span></span>${v.l}<input type="hidden" value="${v.v}"></div>`).join('')+'</div>';}
+function mkCheck(id,vals,key){return`<div class="ropts" id="${id}">`+vals.map(v=>`<div class="ropt" onclick="togCheck(this,'${key}')"><span class="cb"></span>${v.l}<input type="hidden" value="${v.v}"></div>`).join('')+'</div>';}
+function mkScale(id,key,lo,hi){return`<div class="sscale"><div class="slabs"><span>${lo}</span><span>${hi}</span></div><div class="sbtns">`+[1,2,3,4,5].map((n,i)=>`<div class="sbtn" onclick="togScale(this,'${key}')">${n}${i===0?`<small>${lo.split(' ')[0]}</small>`:i===4?`<small>${hi.split(' ')[0]}</small>`:'<small>&nbsp;</small>'}</div>`).join('')+'</div></div>';}
+function mkSlider(id,key,min,max,val,unit){return`<div class="sldwrap"><div class="sldlabs"><span>${min} ${unit}</span><span>${max}+ ${unit}</span></div><input type="range" min="${min}" max="${max}" value="${val}" step="1" id="${id}" oninput="S['${key}']=parseInt(this.value);document.getElementById('${id}v').textContent=this.value+(parseInt(this.value)>=${max}?'+ ':' ')+'${unit}'"><div class="sldval" id="${id}v">${val} ${unit}</div></div>`;}
+function togChip(el,key,multi){if(!multi){el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));}el.classList.toggle('sel');if(!multi&&!el.classList.contains('sel'))el.classList.add('sel');const all=[...el.closest('.chips').querySelectorAll('.chip.sel')].map(c=>c.textContent.trim());S[key]=multi?all:(all[0]||'');}
+function togRadio(el,key){el.closest('.ropts').querySelectorAll('.ropt').forEach(r=>r.classList.remove('sel'));el.classList.add('sel');S[key]=el.querySelector('input[type=hidden]').value;}
+function togCheck(el,key){el.classList.toggle('sel');S[key]=[...el.closest('.ropts').querySelectorAll('.ropt.sel')].map(r=>r.querySelector('input[type=hidden]').value);}
+function togScale(el,key){el.closest('.sbtns').querySelectorAll('.sbtn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');S[key]=parseInt(el.textContent.trim()[0]);}
+
+function buildS3(){const t=S.type;const cfg={biz:{q:'¿Qué problema urgente y específico resuelve?',h:'Cuanto más concreto el dolor, más real la oportunidad.',ex:'Los dueños de cafeterías pequeñas pierden 3 horas al día en pedidos porque todo lo gestionan por WhatsApp sin orden.',ph:'Describe el problema real que existe hoy...',extra:`<div class="qs">¿Qué tan urgente es este problema?</div>${mkScale('s3scl','s3urg','Puede esperar','No puede esperar')}`},personal:{q:'¿Qué cambiaría en tu vida si esto existiera?',h:'Describe el resultado emocional y concreto, no el proceso.',ex:'Podría finalmente tener algo mío, algo que no dependa de un jefe. Sentiría más control de mi tiempo.',ph:'Describe ese cambio con la mayor honestidad posible...',extra:`<div class="qs">¿Cuánto tiempo llevas queriendo hacer esto?</div>${mkSlider('s3sld','s3yrs',0,10,1,'años')}`},creative:{q:'¿Qué quieres que la gente sienta o piense al ver tu trabajo?',h:'La intención creativa primero. No qué vas a hacer, sino qué quieres dejar en quien lo vea.',ex:'Quiero que sientan que lo cotidiano es extraño y hermoso al mismo tiempo.',ph:'Describe la experiencia que quieres crear...',extra:`<div class="qs">¿Cómo definirías el tono de tu trabajo?</div>${mkChips('s3chips',[{l:'Íntimo'},{l:'Provocador'},{l:'Nostálgico'},{l:'Optimista'},{l:'Oscuro'},{l:'Lúdico'},{l:'Minimal'},{l:'Caótico'}],'s3tone',false)}`},life:{q:'¿Qué es lo que ya no aguantas de tu situación actual?',h:'El dolor presente es el motor más honesto del cambio. No lo suavices.',ex:'Ya no aguanto levantarme sabiendo que voy a hacer lo mismo que ayer.',ph:'Descríbelo con honestidad...',extra:`<div class="qs">¿Qué tan urgente se siente este cambio?</div>${mkScale('s3scl','s3urg','Puedo seguir así','Ya no puedo más')}`}};const c=cfg[t]||cfg.biz;document.getElementById('s3q').textContent=c.q;document.getElementById('s3h').textContent=c.h;document.getElementById('s3ex').innerHTML=`<strong>Ejemplo:</strong> "${c.ex}"`;document.getElementById('s3t').placeholder=c.ph;document.getElementById('s3extra').innerHTML=c.extra;}
+function buildS4(){const t=S.type;const q={biz:'¿Quién es exactamente tu cliente?',personal:'¿Para quién más es esto, o es solo para ti?',creative:'¿A quién va dirigido y dónde vive esa audiencia hoy?',life:'¿Cómo imaginas tu vida si este cambio funcionara?'};const h={biz:'Una persona concreta, no un segmento.',personal:'Distingue si es un proyecto íntimo o algo que quieres compartir.',creative:'Canal + audiencia = distribución.',life:'Sé concreto. ¿Qué harías un martes a las 10am?'};document.getElementById('s4q').textContent=q[t]||q.biz;document.getElementById('s4h').textContent=h[t]||h.biz;const html={biz:`<textarea id="s4t" rows="3" placeholder="Edad, situación, qué hace hoy para resolver esto..."></textarea><div class="qs">¿Cuántas personas como esa existen?</div>${mkRadio('s4r',[{v:'nicho',l:'Un nicho muy específico (cientos o miles)'},{v:'segmento',l:'Un segmento claro (decenas de miles)'},{v:'masivo',l:'Un mercado amplio (millones)'},{v:'desconocido',l:'Aún no lo sé'}],'s4market')}`,personal:`${mkRadio('s4r1',[{v:'solo',l:'Solo para mí — no necesito que nadie más lo vea'},{v:'cercanos',l:'Para personas cercanas a mí'},{v:'comunidad',l:'Para una comunidad o grupo específico'},{v:'todos',l:'Quiero que llegue a muchas personas'}],'s4audience')}<div class="qs">¿Alguien en tu vida sabe que quieres hacer esto?</div>${mkRadio('s4r2',[{v:'nadie',l:'Nadie lo sabe todavía'},{v:'pocos',l:'Algunos cercanos lo saben'},{v:'abierto',l:'Lo he hablado abiertamente'}],'s4known')}`,creative:`<textarea id="s4t" rows="3" placeholder="Describe tu audiencia y dónde la encuentras hoy..."></textarea><div class="qs">¿Cuál sería tu canal principal?</div>${mkChips('s4chips',[{l:'Instagram'},{l:'TikTok'},{l:'YouTube'},{l:'Newsletter'},{l:'Galerías'},{l:'Web/Portfolio'},{l:'Podcast'},{l:'Otro'}],'s4channel',false)}`,life:`<textarea id="s4t" rows="4" placeholder="¿Dónde estarías? ¿Con quién? ¿Haciendo qué?"></textarea><div class="qs">¿Este cambio afecta principalmente…?</div>${mkChips('s4chips',[{l:'Mi trabajo/carrera'},{l:'Dónde vivo'},{l:'Mis relaciones'},{l:'Mi salud'},{l:'Mi propósito'},{l:'Todo lo anterior'}],'s4area',false)}`};document.getElementById('s4c').innerHTML=html[t]||html.biz;}
+function buildS5(){const t=S.type;const q={biz:'¿Cómo gana dinero y qué existe hoy en el mercado?',personal:'¿Cuándo fue la última vez que intentaste algo así?',creative:'¿Qué tienen en común los referentes que admiras?',life:'¿Qué perderías si cambias? ¿Qué estás dispuesto a soltar?'};const h={biz:'El modelo de ingreso lo define todo.',personal:'El historial de intentos revela patrones más útiles que cualquier plan.',creative:'Tus referentes revelan tu estética real.',life:'El costo del cambio es lo más ignorado.'};document.getElementById('s5q').textContent=q[t]||q.biz;document.getElementById('s5h').textContent=h[t]||h.biz;const html={biz:`<div class="qs">¿Cuál sería tu modelo de ingreso?</div>${mkChips('s5chips',[{l:'Suscripción'},{l:'Pago único'},{l:'Comisión'},{l:'Publicidad'},{l:'Freemium'},{l:'Servicios'},{l:'Aún no sé'}],'s5model',false)}<div class="qs">¿Qué usan hoy las personas para resolver esto?</div><textarea id="s5t" rows="3" placeholder="Nombra alternativas reales, aunque sean parciales..."></textarea><div class="qs">Nivel de competencia directa</div>${mkChips('s5c2',[{l:'No existe nada parecido'},{l:'Hay alternativas distintas'},{l:'Competidores directos'},{l:'Mercado saturado'}],'s5comp',false)}`,personal:`${mkRadio('s5r',[{v:'nunca',l:'Nunca lo había intentado antes'},{v:'hace-tiempo',l:'Lo intenté hace mucho y lo dejé'},{v:'reciente',l:'Lo intenté recientemente y no funcionó'},{v:'varias',l:'Lo he intentado varias veces sin éxito'}],'s5attempts')}<div class="qs">¿Qué pasó cuando lo intentaste antes?</div><textarea id="s5t" rows="3" placeholder="Sé honesto. No hay respuesta correcta..."></textarea>`,creative:`<textarea id="s5t" rows="3" placeholder="Nombra 2-3 referentes y qué tienen en común..."></textarea><div class="qs">¿Tienes ya un cuerpo de trabajo?</div>${mkRadio('s5r',[{v:'nada',l:'Empiezo desde cero, no he publicado nada'},{v:'poco',l:'Tengo algunas piezas pero muy dispersas'},{v:'algo',l:'Tengo trabajo hecho pero sin dirección clara'},{v:'desarrollado',l:'Tengo un portafolio o cuerpo de trabajo definido'}],'s5body')}<div class="qs">¿Quieres vivir de esto?</div>${mkChips('s5chips',[{l:'Sí, quiero que sea mi sustento'},{l:'Como ingreso complementario'},{l:'No, solo expresión'}],'s5monetize',false)}`,life:`<textarea id="s5t" rows="3" placeholder="Ingresos, estabilidad, imagen, relaciones, comodidad..."></textarea><div class="qs">¿Qué tan dispuesto estás a asumir ese costo?</div>${mkScale('s5scl','s5willingness','No estoy listo','Dispuesto a pagarlo')}<div class="qs">¿Conoces a alguien que haya hecho un cambio similar?</div>${mkRadio('s5r',[{v:'nadie',l:'No conozco a nadie que lo haya hecho'},{v:'de-oidas',l:'He oído de personas que lo hicieron'},{v:'conozco',l:'Conozco a alguien aunque sea de lejos'},{v:'cercano',l:'Alguien cercano lo hizo — puedo hablar con esa persona'}],'s5referents')}`};document.getElementById('s5c').innerHTML=html[t]||html.biz;}
+function buildS6(){const t=S.type;const q={biz:'¿Qué tienes y qué tan rápido podrías lanzar algo pequeño?',personal:'¿Qué necesitas conseguir o aprender que aún no tienes?',creative:'¿Qué te impide publicar algo esta semana?',life:'¿Cuánto tiempo llevas pensando en esto sin actuar?'};const h={biz:'No el producto final — el primer experimento posible.',personal:'El gap entre donde estás y donde necesitas estar.',creative:'El diagnóstico del bloqueo creativo.',life:'La diferencia entre el tiempo pensado y el primer paso.'};document.getElementById('s6q').textContent=q[t]||q.biz;document.getElementById('s6h').textContent=h[t]||h.biz;const html={biz:`<div class="qs">¿En qué etapa está hoy?</div>${mkRadio('s6r1',[{v:'idea',l:'Solo existe en mi cabeza'},{v:'investigando',l:'Estoy investigando y validando'},{v:'construyendo',l:'Estoy construyendo algo concreto'},{v:'activo',l:'Ya tiene usuarios o clientes aunque sean pocos'}],'s6stage')}<div class="qs">¿Qué tienes disponible?</div>${mkCheck('s6chk',[{v:'tiempo',l:'Tiempo libre para dedicarle'},{v:'dinero',l:'Capital inicial'},{v:'habilidades',l:'Las habilidades técnicas clave'},{v:'red',l:'Red de contactos relevante'},{v:'conocimiento',l:'Conocimiento profundo del mercado'}],'s6resources')}<div class="qs">¿Cuántas horas por semana puedes dedicarle?</div>${mkSlider('s6sld','s6time',1,40,10,'h/sem')}`,personal:`<textarea id="s6t" rows="3" placeholder="¿Habilidades, recursos, información, apoyo?..."></textarea><div class="qs">¿Qué tan claro tienes el primer paso concreto?</div>${mkScale('s6scl','s6clarity','Muy confuso','Completamente claro')}<div class="qs">¿Cuántas horas por semana puedes dedicarle?</div>${mkSlider('s6sld2','s6time',1,20,5,'h/sem')}`,creative:`<div class="qs">¿Qué te frena más para publicar?</div>${mkRadio('s6r1',[{v:'perfeccion',l:'Siento que no está listo o no es suficientemente bueno'},{v:'miedo',l:'Me da miedo el juicio de los demás'},{v:'tiempo',l:'No tengo tiempo suficiente'},{v:'herramientas',l:'Me faltan herramientas o habilidades técnicas'},{v:'direccion',l:'No sé exactamente qué publicar primero'},{v:'nada',l:'Podría publicar algo esta misma semana'}],'s6blocker')}<div class="qs">¿Tienes un sistema o ritmo de creación?</div>${mkRadio('s6r2',[{v:'no',l:'No tengo ningún sistema — creo cuando me inspiro'},{v:'informal',l:'Tengo una rutina informal pero no la sostengo'},{v:'si',l:'Tengo un sistema que funciona y lo mantengo'}],'s6rhythm')}<div class="qs">¿Cuántas horas por semana puedes dedicarle?</div>${mkSlider('s6sld3','s6time',1,20,5,'h/sem')}`,life:`<div class="qs">¿Cuánto tiempo llevas con esta idea?</div>${mkChips('s6chips',[{l:'Semanas'},{l:'Meses'},{l:'1-2 años'},{l:'Más de 2 años'}],'s6duration',false)}<div class="qs">¿Qué has hecho concretamente para avanzar?</div>${mkRadio('s6r1',[{v:'nada',l:'Nada — solo lo he pensado'},{v:'investigue',l:'He investigado o leído sobre el tema'},{v:'hable',l:'He hablado con personas que lo hicieron'},{v:'pasos',l:'He dado algunos pasos concretos'}],'s6actions')}<div class="qs">¿Qué tan apoyado te sientes?</div>${mkScale('s6scl','s6support','Solo en esto','Con apoyo claro')}`};document.getElementById('s6c').innerHTML=html[t]||html.biz;}
+function buildS7(){const t=S.type;const q={biz:'¿Alguien ha pagado o prometido pagar por esto ya?',personal:'¿Cómo sabrás que lo lograste?',creative:'¿Qué necesitarías para publicar algo esta semana?',life:'¿Qué necesitarías tener o saber para dar el primer paso hoy?'};const h={biz:'La validación real se mide en compromisos, no en opiniones.',personal:'Sin métrica no hay avance.',creative:'No el proyecto perfecto. La primera pieza real.',life:'Elimina el "cuando tenga X" — suele ser una excusa.'};document.getElementById('s7q').textContent=q[t]||q.biz;document.getElementById('s7h').textContent=h[t]||h.biz;const html={biz:`${mkRadio('s7r1',[{v:'no',l:'Nadie — es solo mi convicción por ahora'},{v:'positivo',l:'He recibido feedback positivo pero nadie ha pagado'},{v:'prometido',l:'Alguien ha prometido o manifestado interés real'},{v:'pagado',l:'Alguien ya ha pagado o firmado algo'}],'s7validation')}<div class="qs">¿Qué te impediría lanzar algo en los próximos 30 días?</div><textarea id="s7t" rows="3" placeholder="Sé honesto..."></textarea>`,personal:`<textarea id="s7t" rows="3" placeholder="Describe el hito concreto que te dirá que lo lograste..."></textarea><div class="qs">¿En cuánto tiempo quieres lograrlo?</div>${mkChips('s7chips',[{l:'1 mes'},{l:'3 meses'},{l:'6 meses'},{l:'1 año'},{l:'Más de 1 año'}],'s7horizon',false)}<div class="qs">¿Qué tanto miedo te da no lograrlo?</div>${mkScale('s7scl','s7fearScore','No me preocupa','Me paraliza')}`,creative:`<textarea id="s7t" rows="3" placeholder="¿Qué falta concretamente?..."></textarea><div class="qs">¿Qué tan preparado te sientes para recibir feedback público?</div>${mkScale('s7scl','s7readiness','Nada preparado','Listo para publicar')}<div class="qs">¿Cuál es tu mayor miedo con este proyecto?</div>${mkRadio('s7r1',[{v:'calidad',l:'Que mi trabajo no sea suficientemente bueno'},{v:'irrelevante',l:'Que no le importe a nadie'},{v:'copias',l:'Que me copien o no sea original'},{v:'monetizar',l:'No saber cómo monetizarlo'},{v:'constancia',l:'No ser constante y abandonarlo'}],'s7fear')}`,life:`<textarea id="s7t" rows="3" placeholder="¿Qué es esa cosa que sientes que te falta?..."></textarea><div class="qs">¿Qué tanto pesa el miedo al juicio de otros?</div>${mkScale('s7scl2','s7judgment','No influye','Es lo que más me frena')}<div class="qs">¿Qué tan urgente sientes que es actuar?</div>${mkChips('s7chips',[{l:'Puede esperar'},{l:'Este año sí o sí'},{l:'Lo necesito ya'}],'s7urgency2',false)}`};document.getElementById('s7c').innerHTML=html[t]||html.biz;}
+
+function s1next(){S.raw=document.getElementById('rawIdea').value.trim();if(S.raw.length<20){alert('Cuéntanos un poco más sobre tu idea.');return;}goTo('s2');}
+function s2next(){if(!S.type){alert('Selecciona el tipo de idea.');return;}buildS3();buildS4();buildS5();buildS6();buildS7();goTo('s3');}
+function s3next(){const ta=document.getElementById('s3t');S.s3t=ta?ta.value.trim():'';if(S.s3t.length<15){alert('Cuéntanos un poco más en esta pregunta.');return;}const sld=document.getElementById('s3sld');if(sld)S.s3yrs=parseInt(sld.value);goTo('s4');}
+function s4next(){const ta=document.getElementById('s4t');if(ta)S.s4t=ta.value.trim();goTo('s5');}
+function s5next(){const ta=document.getElementById('s5t');if(ta)S.s5t=ta.value.trim();goTo('s6');}
+function s6next(){const ta=document.getElementById('s6t');if(ta)S.s6t=ta.value.trim();['s6sld','s6sld2','s6sld3'].forEach(id=>{const el=document.getElementById(id);if(el)S.s6time=parseInt(el.value);});goTo('s7');}
+
+function computeScores(){const t=S.type;let clarity=45,viability=30,originality=40,commitment=20,impact=25,validation=15;if(S.raw.length>80)clarity+=10;if(S.s3t.length>60)clarity+=15;if(S.s3t.length>150)clarity+=8;if(S.s4t&&S.s4t.length>50)clarity+=8;if(S.s5t&&S.s5t.length>50)clarity+=8;const res=Array.isArray(S.s6resources)?S.s6resources:[];viability+=res.length*8;viability+=S.s6time>=20?20:S.s6time>=10?12:S.s6time>=5?6:0;const stm={idea:0,investigando:15,construyendo:25,activo:35};viability+=stm[S.s6stage]||0;if(t==='biz'){const cm={'No existe nada parecido':30,'Hay alternativas distintas':18,'Competidores directos':8,'Mercado saturado':0};originality+=cm[S.s5comp]||10;}if(t==='creative'){const bm={nada:5,poco:10,algo:20,desarrollado:30};originality+=bm[S.s5body]||10;}if(S.s5t&&S.s5t.length>60)originality+=8;commitment+=S.s3urg*10;commitment+=S.s5willingness*8;if(S.s7fearScore)commitment-=S.s7fearScore*2;if(S.s7judgment)commitment-=S.s7judgment*3;commitment+=S.s6time>=15?15:S.s6time>=8?8:0;const mktm={nicho:15,segmento:25,masivo:40,desconocido:10};impact+=mktm[S.s4market]||12;if(t==='life')impact+=S.s5willingness?S.s5willingness*5:10;if(t==='creative'&&S.s4channel)impact+=15;const vm={no:0,positivo:15,prometido:30,pagado:55};validation+=vm[S.s7validation]||0;if(t==='personal'){const am={nada:0,investigue:15,hable:25,pasos:40};validation+=am[S.s6actions]||0;}if(t==='life'){const am2={nada:0,investigue:10,hable:20,pasos:35};validation+=am2[S.s6actions]||0;const rm={nadie:0,'de-oidas':10,conozco:20,cercano:35};validation+=rm[S.s5referents]||0;}if(t==='creative'){const rb={nada:0,poco:10,algo:20,desarrollado:35};validation+=rb[S.s5body]||0;}if(S.s6clarity)validation+=S.s6clarity*4;return{clarity:Math.min(Math.round(clarity),100),viability:Math.min(Math.round(viability),100),originality:Math.min(Math.round(originality),95),commitment:Math.min(Math.max(Math.round(commitment),5),100),impact:Math.min(Math.round(impact),100),validation:Math.min(Math.round(validation),100)};}
+function classify(sc){const avg=(sc.clarity+sc.viability+sc.originality+sc.commitment+sc.impact+sc.validation)/6;const t=S.type;if(t==='biz'){if(S.s7validation==='pagado')return{tag:'Validado en mercado',tc:'#16a34a',tb:'#f0fdf4',title:'Tu idea ya tiene señales reales',summ:'Alguien ya pagó o comprometió algo. Ya no es una hipótesis — es un negocio en etapa temprana. El trabajo ahora es repetir ese resultado y entender por qué funcionó.'};if(avg>=65)return{tag:'Alto potencial',tc:'#16a34a',tb:'#f0fdf4',title:'Una idea de negocio madura para validar',summ:'Tienes claridad en el problema, recursos disponibles y convicción. El siguiente paso no es planear más — es encontrar a 5 personas con ese problema y ver si pagarían.'};if(sc.viability<35)return{tag:'Idea sólida, base frágil',tc:'#d97706',tb:'#fffbeb',title:'La idea tiene fuerza, los recursos no',summ:'El problema que identificas es real, pero los recursos disponibles limitan el ritmo. ¿Cuál es la versión más pequeña que puedes construir con lo que tienes hoy?'};if(sc.clarity<45)return{tag:'Dirección sin foco',tc:'#7c3aed',tb:'#f5f3ff',title:'Hay una oportunidad, pero sin definir',summ:'Percibes que hay algo ahí, pero la propuesta de valor no es concreta aún. Explica el problema en una frase y señala a una persona específica que lo tiene.'};return{tag:'En etapa temprana',tc:'#2563eb',tb:'#eff6ff',title:'Una idea de negocio que necesita forma',summ:'Estás en la etapa más normal. Todo lo que falta se resuelve hablando con personas reales, no planeando más.'};}if(t==='personal'){if(sc.validation>=50&&sc.commitment>=60)return{tag:'Lista para ejecutar',tc:'#16a34a',tb:'#f0fdf4',title:'Tu proyecto está listo — tú también',summ:'Tienes claridad, has dado pasos y el compromiso es alto. Lo que te falta no es información ni tiempo — es comenzar de verdad.'};if(S.s5attempts==='varias')return{tag:'Patrón repetitivo',tc:'#ea580c',tb:'#fff7ed',title:'Has intentado esto antes — algo está bloqueando',summ:'Lo que te detuvo antes no es mala suerte: es un patrón. Vale la pena entenderlo antes de volver a empezar exactamente igual.'};if(sc.clarity<45)return{tag:'Meta difusa',tc:'#7c3aed',tb:'#f5f3ff',title:'La dirección existe, el destino no',summ:'Define primero cómo sabrás que lo lograste — eso solo ya cambia el panorama.'};return{tag:'En desarrollo',tc:'#2563eb',tb:'#eff6ff',title:'Un proyecto personal tomando forma',summ:'Lo que sigue es convertir tu intención en un hito medible en 90 días y un sistema mínimo para sostenerte.'};}if(t==='creative'){if(S.s5body==='desarrollado'&&sc.validation>=40)return{tag:'Obra consolidada',tc:'#16a34a',tb:'#f0fdf4',title:'Tienes obra — ahora necesitas visibilidad',summ:'El reto no es crear más — es que las personas correctas lleguen a lo que ya tienes. El problema pasó de ser creativo a ser de distribución.'};if(S.s6blocker==='perfeccion')return{tag:'Bloqueo por perfeccionismo',tc:'#ea580c',tb:'#fff7ed',title:'El perfeccionismo está frenando tu trabajo',summ:'Lo que te impide publicar no es calidad — es miedo. Publicar algo imperfecto esta semana vale más que esperar el momento perfecto.'};if(S.s6blocker==='miedo')return{tag:'Miedo al juicio',tc:'#7c3aed',tb:'#f5f3ff',title:'El trabajo existe, el miedo lo retiene',summ:'Publicar algo pequeño esta semana rompe ese ciclo más que cualquier preparación adicional.'};if(S.s5body==='nada'||S.s5body==='poco')return{tag:'Inicio creativo',tc:'#2563eb',tb:'#eff6ff',title:'Una visión clara, un portafolio por construir',summ:'Ahora el trabajo es construir el cuerpo de obra — pieza a pieza, sin esperar que todo esté definido.'};return{tag:'En construcción',tc:'#7c3aed',tb:'#f5f3ff',title:'Un proyecto creativo buscando dirección',summ:'Elige un eje claro — formato, canal, audiencia — y comprométete con él por al menos 90 días.'};}if(t==='life'){if(S.s6duration==='Más de 2 años'&&S.s6actions==='nada')return{tag:'Parálisis prolongada',tc:'#ea580c',tb:'#fff7ed',title:'Llevas mucho tiempo pensando, poco actuando',summ:'No es falta de claridad — es miedo a algo concreto. No hace falta un plan perfecto: hace falta una decisión.'};if(S.s5willingness>=4&&S.s5referents==='cercano')return{tag:'Condiciones favorables',tc:'#16a34a',tb:'#f0fdf4',title:'Estás más listo de lo que crees',summ:'La conversación con esa persona que ya lo hizo vale más que meses de planeación.'};if(S.s7judgment>=4)return{tag:'El juicio externo manda',tc:'#7c3aed',tb:'#f5f3ff',title:'Lo que más te frena no es el cambio — es lo que pensarán',summ:'¿De quién exactamente te importa la opinión, y por qué?'};if(sc.commitment>=60)return{tag:'Convicción alta',tc:'#16a34a',tb:'#f0fdf4',title:'Quieres el cambio — y lo sabes',summ:'La convicción está. Lo que falta es el primer paso concreto y pequeño — no el plan completo.'};return{tag:'Transformación en proceso',tc:'#2563eb',tb:'#eff6ff',title:'El cambio ya empezó — dentro de ti',summ:'El siguiente paso no es resolver todo — es nombrar una cosa concreta que puedes hacer esta semana.'};}return{tag:'Semilla temprana',tc:'#6b6960',tb:'#f0efe9',title:'Una idea en etapa cero',summ:'Todas las grandes ideas comenzaron exactamente aquí.'};}
+function genAlerts(sc){const a=[];const t=S.type;if(t==='biz'){if(S.s7validation==='no')a.push({tp:'w',m:'Nadie ha validado esta idea fuera de tu cabeza todavía. Antes de construir, habla con al menos 10 personas que tengan el problema.'});if(S.s5comp==='Mercado saturado')a.push({tp:'w',m:'Mercado saturado: tu diferenciador necesita ser mucho más específico.'});if(!S.s5model||S.s5model==='Aún no sé')a.push({tp:'w',m:'Aún no tienes claro cómo gana dinero. Definir el modelo de ingreso es tan urgente como definir el producto.'});if(sc.viability<35)a.push({tp:'i',m:'Los recursos disponibles son limitados. Enfócate en un experimento de $0 antes de planear la versión completa.'});}if(t==='personal'){if(S.s5attempts==='varias')a.push({tp:'w',m:'Has intentado esto varias veces. Lo que te detuvo antes probablemente sigue ahí.'});if(sc.clarity<45)a.push({tp:'i',m:'Tu objetivo todavía no tiene un criterio de éxito claro.'});if(S.s4known==='nadie')a.push({tp:'i',m:'Nadie en tu vida sabe que quieres hacer esto. Contárselo a alguien te hace responsable.'});}if(t==='creative'){if(S.s6blocker==='perfeccion')a.push({tp:'w',m:'El perfeccionismo es el principal enemigo creativo. Publicar algo imperfecto esta semana vale más.'});if(S.s6rhythm==='no')a.push({tp:'w',m:'Crear solo cuando hay inspiración no es sostenible.'});if(!S.s4channel)a.push({tp:'i',m:'No has definido tu canal principal. Sin canal, no hay audiencia.'});}if(t==='life'){if(S.s6duration==='Más de 2 años'&&S.s6actions==='nada')a.push({tp:'w',m:'Más de 2 años pensando sin actuar. Algo concreto te está frenando — nombrarlo es el primer trabajo.'});if(S.s7judgment>=4)a.push({tp:'w',m:'El miedo al juicio externo está muy presente.'});if(S.s5referents==='nadie')a.push({tp:'i',m:'No conoces a nadie que haya hecho este cambio. Buscar esas historias puede cambiar lo que crees posible.'});}if(sc.commitment<35)a.push({tp:'w',m:'El nivel de compromiso detectado es bajo. Una idea sin dueño claro no avanza sola.'});return a;}
+function genChecklist(sc){const t=S.type;const items=[];if(t==='biz'){items.push('Escribe el problema en una frase: "Las personas que [perfil] tienen el problema de [X] y hoy lo resuelven [así]."');if(S.s7validation==='no'||S.s7validation==='positivo')items.push('Habla con 10 personas que tengan este problema. No para venderles — para escuchar.');if(!S.s5model||S.s5model==='Aún no sé')items.push('Define tu modelo de ingreso antes de construir: ¿quién paga, cuánto y por qué?');items.push('Diseña el experimento más pequeño posible — una landing, encuesta o conversación directa.');if(S.s5comp==='Mercado saturado')items.push('Define en una frase qué te hace diferente para un segmento específico.');if(sc.viability<40)items.push('Identifica el recurso crítico que más te falta y crea un plan mínimo para conseguirlo.');items.push('Busca 3 personas que ya resolvieron un problema similar. Aprende qué errores evitar.');}if(t==='personal'){items.push('Define tu hito en 90 días: ¿qué cosa concreta y medible habrás logrado?');if(S.s5attempts&&S.s5attempts!=='nunca')items.push('Escribe qué te detuvo la vez anterior. La respuesta honesta cambia el plan.');if(S.s4known==='nadie')items.push('Cuéntale a alguien de confianza lo que quieres lograr y con qué fecha.');items.push('Crea el sistema mínimo: ¿qué harás, con qué frecuencia, en qué momento del día?');if(sc.clarity<50)items.push('Completa: "Habré logrado mi meta cuando pueda [acción concreta y verificable]."');items.push('Reserva tiempo en tu calendario ahora — no "cuando pueda".');}if(t==='creative'){if(S.s6blocker==='perfeccion'||S.s6blocker==='miedo')items.push('Publica algo esta semana — lo que sea. El primer post imperfecto vale más que el plan perfecto.');items.push('Elige un canal y comprométete con él por 90 días antes de diversificar.');if(S.s6rhythm==='no'||S.s6rhythm==='informal')items.push('Crea un bloque fijo para crear — aunque sean 30 minutos al día.');items.push('Define en una frase qué hace único tu punto de vista.');if(S.s5monetize==='Sí, quiero que sea mi sustento'&&sc.validation<30)items.push('Antes de monetizar: define cuántas personas quieres alcanzar en 3 meses.');items.push('Estudia 3 referentes y escribe qué tienen en común. Para entender tu idioma creativo.');}if(t==='life'){if(S.s6duration==='Más de 2 años'&&S.s6actions==='nada')items.push('Escribe por qué no has actuado aún — la respuesta honesta es el verdadero punto de partida.');if(S.s5referents==='nadie'||S.s5referents==='de-oidas')items.push('Busca a alguien que haya hecho un cambio similar y pídele 30 minutos.');items.push('Define el primer paso que puedes dar esta semana — solo el primero, no el plan completo.');if(S.s7judgment>=4)items.push('Escribe de quién exactamente te importa la opinión y por qué.');items.push('Calcula el costo real de no cambiar en 1, 3 y 5 años.');if(S.s5willingness<3)items.push('Identifica qué necesitarías para sentirte listo. Evalúa si es una condición real o una excusa.');if(S.s5referents==='cercano')items.push('Agenda una conversación con esa persona que ya lo hizo.');}items.push('Guarda este diagnóstico y reléelo en 30 días. Las ideas y las personas cambian.');return items.slice(0,8);}
+function genResources(t){const r={biz:[{n:'The Mom Test — Rob Fitzpatrick',d:'Cómo validar sin que nadie te mienta por amabilidad.'},{n:'Lean Startup — Eric Ries',d:'Valida antes de construir. El ciclo Crear-Medir-Aprender.'},{n:'Business Model Canvas — Osterwalder',d:'Los 9 bloques de cualquier modelo de negocio en una hoja.'}],personal:[{n:'SMART Goals',d:'Define metas específicas, medibles, alcanzables, relevantes y con tiempo.'},{n:'Atomic Habits — James Clear',d:'Cómo construir sistemas de hábitos que sostengan proyectos largos.'},{n:'Designing Your Life — Burnett & Evans',d:'Design Thinking aplicado a tus metas personales.'}],creative:[{n:'Show Your Work — Austin Kleon',d:'Por qué compartir el proceso importa más que esperar el resultado.'},{n:'Building a Second Brain — Tiago Forte',d:'Sistema para gestionar ideas e inspiración.'},{n:'Bird by Bird — Anne Lamott',d:'Sobre el proceso creativo real — desordenado, imperfecto y poderoso.'}],life:[{n:'Ikigai',d:'El cruce entre lo que amas, lo que haces bien, lo que el mundo necesita y lo que te pagan.'},{n:'Designing Your Life — Burnett & Evans',d:'Prototipa tu vida como diseñador antes de dar el salto.'},{n:'The Pathfinder — Nicholas Lore',d:'Metodología para encontrar trabajo y vida con sentido real.'}]};return r[t]||r.biz;}
+
+let chart=null;
+function showResult(){
+  const ta=document.getElementById('s7t');if(ta)S.s7t=ta.value.trim();
+  const sc=computeScores();const cl=classify(sc);const als=genAlerts(sc);const ck=genChecklist(sc);const res=genResources(S.type);
+  const tag=document.getElementById('rTag');tag.textContent=cl.tag;tag.style.background=cl.tb;tag.style.color=cl.tc;
+  document.getElementById('rTitle').textContent=cl.title;document.getElementById('rSumm').textContent=cl.summ;
+  const pd=[{l:'Claridad',s:sc.clarity,c:'#2563eb'},{l:'Viabilidad',s:sc.viability,c:'#16a34a'},{l:'Originalidad',s:sc.originality,c:'#7c3aed'},{l:'Compromiso',s:sc.commitment,c:'#ea580c'},{l:'Impacto',s:sc.impact,c:'#d97706'},{l:'Validación',s:sc.validation,c:'#6b6960'}];
+  const pw=document.getElementById('pillars');pw.innerHTML='';
+  pd.forEach(p=>{const pct=Math.round(p.s);pw.innerHTML+=`<div class="pil"><div class="pilsc" style="color:${p.c}">${pct}%</div><div class="pilbar"><div class="pilfill" style="width:${pct}%;background:${p.c}"></div></div><div class="pill2">${p.l}</div></div>`;});
+  if(chart)chart.destroy();
+  const dk=S.theme==='dark';const gc=dk?'rgba(240,238,234,0.12)':'rgba(26,25,22,0.1)';
+  chart=new Chart(document.getElementById('radar'),{type:'radar',data:{labels:['Claridad','Viabilidad','Originalidad','Compromiso','Impacto','Validación'],datasets:[{data:[sc.clarity,sc.viability,sc.originality,sc.commitment,sc.impact,sc.validation],backgroundColor:dk?'rgba(251,191,36,0.1)':'rgba(217,119,6,0.08)',borderColor:dk?'#fbbf24':'#d97706',borderWidth:2,pointBackgroundColor:dk?'#fbbf24':'#d97706',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,max:100,grid:{color:gc},angleLines:{color:gc},pointLabels:{color:dk?'#9e9c94':'#6b6960',font:{size:11,family:"'DM Sans',sans-serif"}},ticks:{display:false}}}}});
+  const tn={biz:'Emprendimiento / Negocio',personal:'Proyecto Personal',creative:'Idea Creativa',life:'Transformación de Vida'};
+  const db=document.getElementById('diagBlocks');db.innerHTML='<div class="dtit">Lectura del diagnóstico</div>';
+  [{t:'Tipo de idea',b:tn[S.type]||''},{t:'Tu idea',b:S.raw.substring(0,200)+(S.raw.length>200?'…':'')}].forEach(x=>{if(!x.b)return;db.innerHTML+=`<div class="dbl"><div class="dblt">${x.t}</div><div class="dblb">${x.b}</div></div>`;});
+  const ali=document.getElementById('alerts');ali.innerHTML=als.length===0?'<div class="alt as2"><span class="alti">✓</span><span>Sin señales críticas detectadas.</span></div>':'';
+  als.forEach(a=>{ali.innerHTML+=`<div class="alt ${a.tp==='w'?'aw':'ai'}"><span class="alti">${a.tp==='w'?'!':'i'}</span><span>${a.m}</span></div>`;});
+  const cl2=document.getElementById('checklist');cl2.innerHTML='';
+  ck.forEach(item=>{cl2.innerHTML+=`<li class="cli"><div class="cbox" onclick="this.classList.toggle('done')"></div><span>${item}</span></li>`;});
+  const rl=document.getElementById('resources');rl.innerHTML='';
+  res.forEach(r=>{rl.innerHTML+=`<div class="dbl"><div class="dblt">${r.n}</div><div class="dblb">${r.d}</div></div>`;});
+  goTo('sR');
+}
+
+/* ─── HELPERS PDF ─── */
+const PW=210,PM=18,PCW=210-18*2,PBOT=282;
+function pNewPage(doc){doc.addPage();return PM+8;}
+function pCheckY(doc,y,needed){return y+needed>PBOT?pNewPage(doc):y;}
+function pText(doc,txt,x,y,opts){doc.text(txt,x,y,opts||{});return y;}
+function pWrapped(doc,txt,x,y,maxW,lineH){
+  const lines=doc.splitTextToSize(txt,maxW);
+  lines.forEach(l=>{if(y>PBOT){y=pNewPage(doc);}doc.text(l,x,y);y+=lineH;});
+  return y;
+}
+function pSectionHeader(doc,title,y,sub){
+  y=pCheckY(doc,y,14);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(26,25,22);
+  doc.text(title,PM,y);y+=6;
+  if(sub){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(107,105,96);doc.text(sub,PM,y);y+=5;}
+  return y;
+}
+
+function getTextResponses(){
+  const t=S.type;
+  const labels={
+    biz:{s3:'¿Qué problema urgente y específico resuelve?',s4:'¿Quién es exactamente tu cliente?',s5:'¿Qué usan hoy las personas para resolver esto?',s7:'¿Qué te impediría lanzar algo en los próximos 30 días?'},
+    personal:{s3:'¿Qué cambiaría en tu vida si esto existiera?',s5:'¿Qué pasó cuando lo intentaste antes?',s6:'¿Qué necesitas conseguir o aprender que aún no tienes?',s7:'¿Cómo sabrás que lo lograste?'},
+    creative:{s3:'¿Qué quieres que la gente sienta o piense al ver tu trabajo?',s4:'¿A quién va dirigido y dónde vive esa audiencia hoy?',s5:'¿Qué tienen en común los referentes que admiras?',s7:'¿Qué necesitarías para publicar algo esta semana?'},
+    life:{s3:'¿Qué es lo que ya no aguantas de tu situación actual?',s4:'¿Cómo imaginas tu vida si este cambio funcionara?',s5:'¿Qué perderías si cambias? ¿Qué estás dispuesto a soltar?',s7:'¿Qué necesitarías tener o saber para dar el primer paso hoy?'}
+  };
+  const lbl=labels[t]||labels.biz;
+  const entries=[];
+  entries.push({q:'Tu idea inicial',a:S.raw});
+  if(lbl.s3&&S.s3t)entries.push({q:lbl.s3,a:S.s3t});
+  if(lbl.s4&&S.s4t)entries.push({q:lbl.s4,a:S.s4t});
+  if(lbl.s5&&S.s5t)entries.push({q:lbl.s5,a:S.s5t});
+  if(lbl.s6&&S.s6t)entries.push({q:lbl.s6,a:S.s6t});
+  if(lbl.s7&&S.s7t)entries.push({q:lbl.s7,a:S.s7t});
+  return entries.filter(e=>e.a&&e.a.trim()!=='');
+}
+
+function getKeySelections(){
+  const t=S.type;const tn={biz:'Emprendimiento / Negocio',personal:'Proyecto Personal',creative:'Idea Creativa',life:'Transformación de Vida'};
+  const rows=[];
+  rows.push({k:'Tipo de idea',v:tn[t]||t});
+  if(t==='biz'){
+    if(S.s4market)rows.push({k:'Tamaño de mercado',v:{nicho:'Nicho específico',segmento:'Segmento claro',masivo:'Mercado amplio',desconocido:'Aún no lo sé'}[S.s4market]||S.s4market});
+    if(S.s5model)rows.push({k:'Modelo de ingreso',v:S.s5model});
+    if(S.s5comp)rows.push({k:'Nivel de competencia',v:S.s5comp});
+    if(S.s6stage)rows.push({k:'Etapa actual',v:{idea:'Solo en mi cabeza',investigando:'Investigando',construyendo:'Construyendo',activo:'Ya tiene usuarios'}[S.s6stage]||S.s6stage});
+    if(S.s7validation)rows.push({k:'Validación',v:{no:'Sin validación externa',positivo:'Feedback positivo',prometido:'Interés manifestado',pagado:'Alguien ya pagó'}[S.s7validation]||S.s7validation});
+    if(S.s3urg)rows.push({k:'Urgencia del problema',v:`${S.s3urg}/5`});
+  }
+  if(t==='personal'){
+    if(S.s4audience)rows.push({k:'Para quién',v:{solo:'Solo para mí',cercanos:'Personas cercanas',comunidad:'Comunidad específica',todos:'Amplia audiencia'}[S.s4audience]||S.s4audience});
+    if(S.s4known)rows.push({k:'¿Alguien lo sabe?',v:{nadie:'Nadie lo sabe',pocos:'Algunos cercanos',abierto:'Lo he hablado abiertamente'}[S.s4known]||S.s4known});
+    if(S.s5attempts)rows.push({k:'Intentos previos',v:{nunca:'Primer intento','hace-tiempo':'Intentado hace tiempo',reciente:'Intento reciente fallido',varias:'Múltiples intentos'}[S.s5attempts]||S.s5attempts});
+    if(S.s7horizon)rows.push({k:'Horizonte de tiempo',v:S.s7horizon});
+    if(S.s6clarity)rows.push({k:'Claridad del primer paso',v:`${S.s6clarity}/5`});
+    if(S.s7fearScore)rows.push({k:'Miedo a no lograrlo',v:`${S.s7fearScore}/5`});
+  }
+  if(t==='creative'){
+    if(S.s3tone)rows.push({k:'Tono del trabajo',v:S.s3tone});
+    if(S.s4channel)rows.push({k:'Canal principal',v:S.s4channel});
+    if(S.s5body)rows.push({k:'Cuerpo de trabajo',v:{nada:'Empezando desde cero',poco:'Piezas dispersas',algo:'Trabajo sin dirección clara',desarrollado:'Portafolio definido'}[S.s5body]||S.s5body});
+    if(S.s5monetize)rows.push({k:'Monetización',v:S.s5monetize});
+    if(S.s6blocker)rows.push({k:'Principal bloqueo',v:{perfeccion:'Perfeccionismo',miedo:'Miedo al juicio',tiempo:'Falta de tiempo',herramientas:'Faltan herramientas',direccion:'Falta de dirección',nada:'Sin bloqueo aparente'}[S.s6blocker]||S.s6blocker});
+    if(S.s6rhythm)rows.push({k:'Sistema de creación',v:{no:'Sin sistema',informal:'Sistema informal',si:'Sistema establecido'}[S.s6rhythm]||S.s6rhythm});
+    if(S.s7readiness)rows.push({k:'Listo para feedback',v:`${S.s7readiness}/5`});
+  }
+  if(t==='life'){
+    if(S.s4area)rows.push({k:'Área de impacto',v:S.s4area});
+    if(S.s5willingness)rows.push({k:'Disposición al costo del cambio',v:`${S.s5willingness}/5`});
+    if(S.s5referents)rows.push({k:'Referentes conocidos',v:{nadie:'Ninguno',  'de-oidas':'Solo de oídas',conozco:'Conozco a alguien',cercano:'Alguien cercano'}[S.s5referents]||S.s5referents});
+    if(S.s6duration)rows.push({k:'Tiempo pensando en esto',v:S.s6duration});
+    if(S.s6actions)rows.push({k:'Acciones tomadas',v:{nada:'Ninguna',investigue:'Investigación',hable:'Conversaciones',pasos:'Pasos concretos'}[S.s6actions]||S.s6actions});
+    if(S.s7judgment)rows.push({k:'Miedo al juicio externo',v:`${S.s7judgment}/5`});
+    if(S.s7urgency2)rows.push({k:'Urgencia de actuar',v:S.s7urgency2});
+  }
+  if(S.s6time)rows.push({k:'Horas semanales disponibles',v:`${S.s6time} h/sem`});
+  return rows;
+}
+
+function getUnansweredQuestions(sc){
+  const t=S.type;const q=[];
+  if(t==='biz'){
+    if(!S.s4market||S.s4market==='desconocido')q.push('¿A cuántas personas afecta realmente este problema?');
+    if(!S.s5model||S.s5model==='Aún no sé')q.push('¿Cuál es exactamente el modelo de ingreso? ¿Quién paga, cuánto y cuándo?');
+    if(S.s7validation==='no')q.push('¿Hay alguien dispuesto a pagar por esto hoy? ¿Cómo lo sabes?');
+    if(sc.originality<50)q.push('¿Qué hace que alguien te elija a ti sobre lo que ya existe?');
+  }
+  if(t==='personal'){
+    if(sc.clarity<50)q.push('¿Cómo sabrás exactamente que lo lograste? ¿Cuál es el criterio de éxito medible?');
+    if(!S.s7horizon)q.push('¿En cuánto tiempo quieres lograrlo?');
+    if(S.s5attempts==='varias')q.push('¿Qué fue diferente en cada intento? ¿Qué patrón se repite?');
+  }
+  if(t==='creative'){
+    if(!S.s4channel)q.push('¿Cuál es el canal principal donde vivirá tu trabajo?');
+    if(S.s5body==='nada'||S.s5body==='poco')q.push('¿Cuál sería la primera pieza que publicarías esta semana?');
+    if(S.s5monetize==='Sí, quiero que sea mi sustento')q.push('¿Cuándo y cómo planeas monetizar? ¿Qué necesitas antes de llegar ahí?');
+  }
+  if(t==='life'){
+    if(S.s6actions==='nada')q.push('¿Cuál sería el primer paso más pequeño posible que podrías dar esta semana?');
+    if(!S.s5referents||S.s5referents==='nadie')q.push('¿Quién ha hecho un cambio similar? ¿Cómo podrías contactarlos?');
+    if(sc.commitment<40)q.push('¿Qué necesitarías para comprometerte de verdad con este cambio?');
+  }
+  return q.slice(0,5);
+}
+
+function getTimeline(){
+  const t=S.type;
+  const tl={
+    biz:[{d:'Esta semana',a:'Escribe el problema en una frase. Identifica a 3 personas concretas que lo tienen.'},{d:'En 30 días',a:'Habla con 10 personas con ese problema. Diseña y lanza el experimento más pequeño posible.'},{d:'En 90 días',a:'Analiza qué funcionó y qué no. Define si continúas, pivoteas o descartas basado en datos reales.'}],
+    personal:[{d:'Esta semana',a:'Define el hito en 90 días y cuéntaselo a alguien de confianza con fecha límite.'},{d:'En 30 días',a:'Crea el sistema mínimo y lleva un registro semanal de avance.'},{d:'En 90 días',a:'Evalúa contra el hito que definiste. ¿Lo lograste? ¿Qué ajustas para el siguiente ciclo?'}],
+    creative:[{d:'Esta semana',a:'Publica una primera pieza — imperfecta está bien. Elige tu canal principal.'},{d:'En 30 días',a:'Publica al menos 4 piezas. Analiza cuál tuvo más respuesta y por qué.'},{d:'En 90 días',a:'Tienes un cuerpo de obra inicial. Define qué dirección seguir con base en lo que aprendiste.'}],
+    life:[{d:'Esta semana',a:'Nombra el primer paso más pequeño posible y ponle fecha. Solo ese.'},{d:'En 30 días',a:'Habla con alguien que ya hizo el cambio que quieres hacer. Toma notas.'},{d:'En 90 días',a:'Evalúa honestamente: ¿avanzaste? ¿Qué sigue frenándote? Decide si ajustas el plan o el compromiso.'}]
+  };
+  return tl[t]||tl.biz;
+}
+
+function exportPDF(){
+  const{jsPDF}=window.jspdf;if(!jsPDF){alert('Error cargando el exportador.');return;}
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const sc=computeScores();const cl=classify(sc);
+  const tn={biz:'Emprendimiento / Negocio',personal:'Proyecto Personal',creative:'Idea Creativa',life:'Transformación de Vida'};
+  const dd=new Date();
+  const dateStr=dd.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'});
+  const reviewDate=new Date(dd.getTime()+30*24*60*60*1000).toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'});
+
+  /* ═══════════════════════════════
+     PÁGINA 1 — DIAGNÓSTICO
+  ═══════════════════════════════ */
+  doc.setFillColor(26,25,22);doc.rect(0,0,PW,58,'F');
+
+  /* Créditos header */
+  doc.setTextColor(90,88,82);doc.setFont('helvetica','normal');doc.setFontSize(7);
+  doc.text('Hecho con amor por @jotady',PW/2,9,{align:'center'});
+  doc.setDrawColor(50,48,44);doc.setLineWidth(.25);doc.line(PM,11.5,PW-PM,11.5);
+
+  /* Título */
+  doc.setTextColor(240,238,234);doc.setFont('helvetica','bold');doc.setFontSize(17);
+  const tl2=doc.splitTextToSize(cl.title,PCW);doc.text(tl2,PM,22);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(190,168,90);
+  doc.text(cl.tag+' · '+(tn[S.type]||''),PM,22+tl2.length*7+2);
+  doc.setTextColor(90,88,82);doc.setFontSize(7.5);
+  doc.text(dateStr,PW-PM,54,{align:'right'});
+
+  let y=68;
+
+  /* Resumen */
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(40,38,34);
+  y=pWrapped(doc,cl.summ,PM,y,PCW,5);y+=8;
+
+  /* Pilares */
+  y=pCheckY(doc,y,14);
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(26,25,22);
+  doc.text('Diagnóstico por pilares',PM,y);y+=7;
+  [['Claridad',sc.clarity],['Viabilidad',sc.viability],['Originalidad',sc.originality],['Compromiso',sc.commitment],['Impacto',sc.impact],['Validación',sc.validation]].forEach(([n,s])=>{
+    y=pCheckY(doc,y,10);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(26,25,22);
+    doc.text(n,PM,y);doc.text(Math.round(s)+'%',PM+PCW,y,{align:'right'});y+=3.5;
+    doc.setFillColor(232,230,223);doc.rect(PM,y,PCW,2.2,'F');
+    doc.setFillColor(217,119,6);doc.rect(PM,y,PCW*Math.round(s)/100,2.2,'F');
+    y+=6;
+  });y+=5;
+
+  /* Selecciones clave */
+  const selRows=getKeySelections();
+  if(selRows.length>0){
+    y=pCheckY(doc,y,14);
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(26,25,22);
+    doc.text('Tus respuestas clave',PM,y);y+=7;
+    selRows.forEach(row=>{
+      y=pCheckY(doc,y,7);
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(107,105,96);
+      doc.text(row.k,PM,y);
+      doc.setFont('helvetica','normal');doc.setTextColor(26,25,22);
+      doc.text(String(row.v),PM+PCW,y,{align:'right',maxWidth:PCW*0.55});
+      y+=6;
+      doc.setDrawColor(235,233,226);doc.setLineWidth(.2);doc.line(PM,y-1,PM+PCW,y-1);
+    });y+=5;
+  }
+
+  /* Alertas — CORREGIDO: sin rect fijo, línea por línea */
+  const als=genAlerts(sc);
+  if(als.length>0){
+    y=pCheckY(doc,y,14);
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(26,25,22);
+    doc.text('Señales a tener en cuenta',PM,y);y+=7;
+    als.forEach(a=>{
+      const isW=a.tp==='w';
+      const prefix=isW?'! ':'i ';
+      const fullTxt=prefix+a.m;
+      const lines=doc.splitTextToSize(fullTxt,PCW-6);
+      const boxH=lines.length*4.8+6;
+      y=pCheckY(doc,y,boxH+3);
+      /* Fondo */
+      if(isW){doc.setFillColor(255,251,235);}else{doc.setFillColor(239,246,255);}
+      doc.roundedRect(PM,y-3,PCW,boxH,1.5,1.5,'F');
+      /* Borde izq */
+      doc.setFillColor(isW?217:37,isW?119:99,isW?6:235);
+      doc.rect(PM,y-3,2,boxH,'F');
+      /* Texto */
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+      doc.setTextColor(isW?140:30,isW?90:70,isW?5:200);
+      lines.forEach((ln,i)=>{doc.text(ln,PM+4,y+i*4.8);});
+      y+=boxH+4;
+    });y+=3;
+  }
+
+  /* Próximos pasos */
+  y=pCheckY(doc,y,14);
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(26,25,22);
+  doc.text('Tus próximos pasos',PM,y);y+=7;
+  genChecklist(sc).forEach((item,i)=>{
+    const lines=doc.splitTextToSize(item,PCW-9);
+    const needed=lines.length*4.5+5;
+    y=pCheckY(doc,y,needed);
+    doc.setFillColor(240,238,230);doc.roundedRect(PM,y-3.2,5.5,5.5,1,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(26,25,22);
+    doc.text(`${i+1}`,PM+1.7,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(40,38,34);
+    lines.forEach((ln,j)=>{doc.text(ln,PM+8,y+j*4.5);});
+    y+=needed;
+  });y+=4;
+
+  /* Línea de tiempo */
+  const timeline=getTimeline();
+  y=pCheckY(doc,y,14);
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(26,25,22);
+  doc.text('Línea de tiempo sugerida',PM,y);y+=7;
+  timeline.forEach((item,i)=>{
+    const alines=doc.splitTextToSize(item.a,PCW-22);
+    const needed=alines.length*4.5+10;
+    y=pCheckY(doc,y,needed);
+    /* Conector */
+    if(i<timeline.length-1){doc.setDrawColor(217,119,6);doc.setLineWidth(.4);doc.line(PM+4,y+6,PM+4,y+needed);}
+    /* Círculo */
+    doc.setFillColor(217,119,6);doc.circle(PM+4,y,3,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(26,25,22);
+    doc.text(item.d,PM+10,y);y+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(60,58,54);
+    alines.forEach(ln=>{doc.text(ln,PM+10,y);y+=4.5;});
+    y+=4;
+  });y+=3;
+
+  /* ═══════════════════════════════
+     PÁGINA 2 — LO QUE PENSASTE
+  ═══════════════════════════════ */
+  doc.addPage();
+
+  /* Header p2 */
+  doc.setFillColor(245,244,241);doc.rect(0,0,PW,42,'F');
+  doc.setDrawColor(217,119,6);doc.setLineWidth(.6);doc.line(PM,42,PW-PM,42);
+  doc.setTextColor(26,25,22);doc.setFont('helvetica','bold');doc.setFontSize(15);
+  doc.text('Lo que pensaste',PM,18);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(107,105,96);
+  doc.text('Tus respuestas originales. Una cápsula del tiempo para releer en 30 días.',PM,28);
+  doc.setFontSize(7.5);doc.setTextColor(158,156,148);
+  doc.text(dateStr,PW-PM,28,{align:'right'});
+
+  y=52;
+  const entries=getTextResponses();
+  entries.forEach((entry,idx)=>{
+    const alines=doc.splitTextToSize(entry.a,PCW-6);
+    const qlines=doc.splitTextToSize(entry.q,PCW-10);
+    const needed=qlines.length*4.5+alines.length*5+20;
+    y=pCheckY(doc,y,needed);
+
+    /* Número */
+    doc.setFillColor(26,25,22);doc.circle(PM+3,y-0.5,3.2,'F');
+    doc.setTextColor(240,238,234);doc.setFont('helvetica','bold');doc.setFontSize(7);
+    doc.text(`${idx+1}`,PM+1.8,y+.5);
+
+    /* Pregunta */
+    doc.setTextColor(107,105,96);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    qlines.forEach((ql,qi)=>{doc.text(ql,PM+9,y+qi*4.5);});
+    y+=qlines.length*4.5+3;
+
+    /* Respuesta con fondo */
+    const boxH=alines.length*5+8;
+    y=pCheckY(doc,y,boxH+4);
+    doc.setFillColor(250,249,246);doc.setDrawColor(232,230,223);doc.setLineWidth(.25);
+    doc.roundedRect(PM,y-2,PCW,boxH,1.5,1.5,'FD');
+    doc.setTextColor(26,25,22);doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+    alines.forEach((al,ai)=>{doc.text(al,PM+4,y+3+ai*5);});
+    y+=boxH+8;
+
+    /* Separador */
+    if(idx<entries.length-1){doc.setDrawColor(232,230,223);doc.setLineWidth(.2);doc.line(PM,y-4,PW-PM,y-4);}
+  });
+
+  /* Preguntas sin respuesta */
+  const uq=getUnansweredQuestions(sc);
+  if(uq.length>0){
+    y=pCheckY(doc,y,14);
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(26,25,22);
+    doc.text('Preguntas que aún no tienes respuesta',PM,y);y+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(107,105,96);
+    doc.text('Estas surgieron del análisis de tus respuestas. Pueden ser el mejor punto de partida.',PM,y);y+=8;
+    uq.forEach((q2,i)=>{
+      const qlines2=doc.splitTextToSize(`${i+1}. ${q2}`,PCW-4);
+      const needed2=qlines2.length*4.8+5;
+      y=pCheckY(doc,y,needed2);
+      doc.setFillColor(250,249,246);doc.setDrawColor(232,230,223);doc.setLineWidth(.2);
+      doc.roundedRect(PM,y-3,PCW,needed2,1.5,1.5,'FD');
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,25,22);
+      qlines2.forEach((ql2,qi2)=>{doc.text(ql2,PM+3,y+qi2*4.8);});
+      y+=needed2+4;
+    });y+=4;
+  }
+
+  /* Fecha de revisión */
+  y=pCheckY(doc,y,20);
+  doc.setFillColor(255,251,235);doc.setDrawColor(217,119,6);doc.setLineWidth(.4);
+  doc.roundedRect(PM,y-3,PCW,16,2,2,'FD');
+  doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(140,90,5);
+  doc.text('Fecha recomendada para revisar este diagnóstico:',PM+4,y+3);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(26,25,22);
+  doc.text(reviewDate,PM+4,y+10);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,90,5);
+  doc.text('Pasa 30 días desde hoy.',PW-PM-2,y+10,{align:'right'});
+  y+=22;
+
+  /* Nota de cierre */
+  y=pCheckY(doc,y,22);
+  doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(107,105,96);
+  const closingLines=doc.splitTextToSize('"Las buenas ideas merecen aterrizarse bien, no quedarse dando vueltas." — @jotady',PCW);
+  closingLines.forEach(cl3=>{doc.text(cl3,PW/2,y,{align:'center'});y+=5;});
+
+  /* ─── BOTONES CLICKEABLES EN FOOTER ─── */
+  const footY=286;
+  const btnH=7;const btnR=2;
+  const btnDefs=[
+    {label:'LinkedIn  @jotady',url:'https://www.linkedin.com/in/jotady',x:PM},
+    {label:'Instagram  @jotady',url:'https://www.instagram.com/jotady',x:PM+58},
+    {label:'WhatsApp',url:'https://wa.me/56934881823',x:PM+118}
+  ];
+
+  /* Numeración de páginas */
+  const totalPages=doc.internal.getNumberOfPages();
+  for(let i=1;i<=totalPages;i++){
+    doc.setPage(i);
+    /* Línea pie */
+    doc.setDrawColor(220,218,210);doc.setLineWidth(.2);doc.line(PM,footY-10,PW-PM,footY-10);
+
+    if(i===totalPages){
+      /* Botones solo en última página */
+      btnDefs.forEach(btn=>{
+        const bw=Math.min(50,doc.getTextWidth(btn.label)+8);
+        doc.setFillColor(245,244,241);doc.setDrawColor(200,198,192);doc.setLineWidth(.3);
+        doc.roundedRect(btn.x,footY-8,bw,btnH,btnR,btnR,'FD');
+        doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(60,58,54);
+        doc.text(btn.label,btn.x+bw/2,footY-3.5,{align:'center'});
+        doc.link(btn.x,footY-8,bw,btnH,{url:btn.url});
+      });
+    } else {
+      /* Crédito simple en otras páginas */
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(158,156,148);
+      doc.text('Hecho con amor por @jotady  ·  semilla.jotady.com',PW/2,footY-4,{align:'center'});
+    }
+    /* Número de página */
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(158,156,148);
+    doc.text(`${i} / ${totalPages}`,PW-PM,footY-4,{align:'right'});
+  }
+
+  doc.save('semilla-diagnostico-jotady.pdf');
+}
+
+function restart(){Object.keys(S).forEach(k=>{if(typeof S[k]==='string')S[k]='';else if(typeof S[k]==='number')S[k]=0;else if(Array.isArray(S[k]))S[k]=[];});S.theme=document.documentElement.getAttribute('data-theme')||'light';S.s6time=10;S.s3yrs=1;const ri=document.getElementById('rawIdea');if(ri)ri.value='';document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));goTo('s0');}
+updateDots();
+</script>
+</body>
+</html>
